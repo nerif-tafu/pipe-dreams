@@ -14,7 +14,7 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 
 This deployment uses a **Node.js backend** approach:
 
-1. **SvelteKit App**: Runs as a Node.js server on port 3000
+1. **SvelteKit App**: Built with `@sveltejs/adapter-node`, runs as a Node.js server on port 3000
 2. **Nginx**: Acts as a reverse proxy, forwarding requests to the Node.js app
 3. **systemd**: Manages the Node.js service (auto-restart, logging, etc.)
 4. **GitHub Actions**: Automatically builds and deploys on every push to `main`

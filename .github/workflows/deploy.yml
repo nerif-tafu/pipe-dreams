@@ -32,9 +32,6 @@ jobs:
         ls -la build/ || echo "Build directory not found, checking current directory:"
         ls -la
         
-    - name: Install Node.js adapter
-      run: npm install @sveltejs/adapter-node
-      
     - name: Create deployment directory
       run: |
         # Create deployment directory with proper permissions
