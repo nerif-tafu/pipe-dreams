@@ -11,7 +11,16 @@ export class SteamCmdWrapper {
   constructor(projectRoot) {
     this.projectRoot = projectRoot;
     this.steamCmdDir = join(projectRoot, 'steamcmd');
-    this.steamCmdExe = join(this.steamCmdDir, 'steamcmd.exe');
+    
+    // Platform-agnostic executable name
+    const platform = process.platform;
+    if (platform === 'win32') {
+      this.steamCmdExe = join(this.steamCmdDir, 'steamcmd.exe');
+    } else {
+      // Linux/macOS use steamcmd (no extension)
+      this.steamCmdExe = join(this.steamCmdDir, 'steamcmd');
+    }
+    
     this.isInstalled = false;
     this.isLoggedIn = false;
     this.username = null;
@@ -66,24 +75,51 @@ export class SteamCmdWrapper {
         console.log('Created steamcmd directory');
       }
 
-      // Download SteamCMD
-      const steamCmdUrl = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip';
-      const zipPath = join(this.steamCmdDir, 'steamcmd.zip');
+      // Download SteamCMD (platform-specific)
+      const platform = process.platform;
+      let downloadUrl, archivePath, archiveName;
       
-      console.log('Downloading SteamCMD...');
-      await this.downloadFile(steamCmdUrl, zipPath);
+      if (platform === 'win32') {
+        downloadUrl = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip';
+        archiveName = 'steamcmd.zip';
+      } else {
+        // Linux/macOS
+        downloadUrl = 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz';
+        archiveName = 'steamcmd_linux.tar.gz';
+      }
       
-      // Extract the ZIP file
+      archivePath = join(this.steamCmdDir, archiveName);
+      
+      console.log(`Downloading SteamCMD for ${platform}...`);
+      await this.downloadFile(downloadUrl, archivePath);
+      
+      // Extract the archive
       console.log('Extracting SteamCMD...');
-      await this.extractZip(zipPath, this.steamCmdDir);
+      if (platform === 'win32') {
+        await this.extractZip(archivePath, this.steamCmdDir);
+      } else {
+        await this.extractTarGz(archivePath, this.steamCmdDir);
+      }
       
-      // Clean up the ZIP file
+      // Clean up the archive file
       try {
-        if (existsSync(zipPath)) {
-          unlinkSync(zipPath);
+        if (existsSync(archivePath)) {
+          unlinkSync(archivePath);
         }
       } catch (cleanupError) {
-        console.error('Failed to cleanup ZIP file:', cleanupError);
+        console.error('Failed to cleanup archive file:', cleanupError);
+      }
+      
+      // Set executable permissions on Linux/macOS
+      if (process.platform !== 'win32') {
+        try {
+          const { chmod } = await import('fs/promises');
+          await chmod(this.steamCmdExe, 0o755);
+          console.log('Set executable permissions on SteamCMD');
+        } catch (chmodError) {
+          console.error('Failed to set executable permissions:', chmodError);
+          // Don't fail the installation for this, just warn
+        }
       }
       
       // Verify installation
@@ -189,6 +225,26 @@ export class SteamCmdWrapper {
     } catch (error) {
       console.error('Extraction error:', error);
       throw new Error(`Failed to extract ZIP: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract TAR.GZ file (Linux/macOS)
+   */
+  async extractTarGz(tarGzPath, extractPath) {
+    try {
+      console.log(`Extracting ${tarGzPath} to ${extractPath}...`);
+      
+      // Use tar command for TAR.GZ extraction
+      const { stdout, stderr } = await execAsync(
+        `tar -xzf "${tarGzPath}" -C "${extractPath}"`,
+        { cwd: extractPath }
+      );
+      
+      console.log('TAR.GZ extraction completed');
+    } catch (error) {
+      console.error('TAR.GZ extraction error:', error);
+      throw new Error(`Failed to extract TAR.GZ: ${error.message}`);
     }
   }
 
