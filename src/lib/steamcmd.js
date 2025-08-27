@@ -1,9 +1,9 @@
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, unlinkSync, createReadStream, createWriteStream } from 'fs';
 import { join } from 'path';
-import { createWriteStream } from 'fs';
 import pty from '@lydell/node-pty';
+import { Extract } from 'unzipper';
 
 const execAsync = promisify(exec);
 
@@ -165,15 +165,27 @@ export class SteamCmdWrapper {
   }
 
   /**
-   * Extract ZIP file
+   * Extract ZIP file (platform-agnostic)
    */
   async extractZip(zipPath, extractPath) {
     try {
-      const { stdout } = await execAsync(
-        `powershell -command "Expand-Archive -Path '${zipPath}' -DestinationPath '${extractPath}' -Force"`,
-        { cwd: this.projectRoot }
-      );
-      console.log('Extraction completed');
+      console.log(`Extracting ${zipPath} to ${extractPath}...`);
+      
+      // Use unzipper for cross-platform ZIP extraction
+      const extract = Extract({ path: extractPath });
+      
+      return new Promise((resolve, reject) => {
+        createReadStream(zipPath)
+          .pipe(extract)
+          .on('close', () => {
+            console.log('Extraction completed');
+            resolve();
+          })
+          .on('error', (error) => {
+            console.error('Extraction error:', error);
+            reject(new Error(`Failed to extract ZIP: ${error.message}`));
+          });
+      });
     } catch (error) {
       console.error('Extraction error:', error);
       throw new Error(`Failed to extract ZIP: ${error.message}`);

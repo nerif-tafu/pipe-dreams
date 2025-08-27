@@ -19,6 +19,7 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
-		"@lydell/node-pty": "^1.1.0"
+		"@lydell/node-pty": "^1.1.0",
+		"unzipper": "^0.12.3"
 	}
 }
