@@ -28,7 +28,8 @@ jobs:
       
     - name: Create deployment directory
       run: |
-        mkdir -p /var/www/pipe-dreams
+        # Create deployment directory with proper permissions
+        sudo mkdir -p /var/www/pipe-dreams
         sudo chown -R $USER:$USER /var/www/pipe-dreams
         
     - name: Deploy to web server
