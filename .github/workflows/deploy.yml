@@ -26,6 +26,12 @@ jobs:
     - name: Build application
       run: npm run build
       
+    - name: Verify build output
+      run: |
+        echo "Build directory contents:"
+        ls -la build/ || echo "Build directory not found, checking current directory:"
+        ls -la
+      
     - name: Create deployment directory
       run: |
         # Create deployment directory with proper permissions
