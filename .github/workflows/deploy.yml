@@ -1,0 +1,51 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Create deployment directory
+      run: |
+        mkdir -p /var/www/pipe-dreams
+        sudo chown -R $USER:$USER /var/www/pipe-dreams
+        
+    - name: Deploy to web server
+      run: |
+        # Copy built files to web server directory
+        cp -r build/* /var/www/pipe-dreams/
+        
+        # Set proper permissions
+        sudo chown -R www-data:www-data /var/www/pipe-dreams
+        sudo chmod -R 755 /var/www/pipe-dreams
+        
+        # Restart web server (adjust based on your setup)
+        sudo systemctl reload nginx || sudo systemctl reload apache2 || echo "Web server reload skipped"
+        
+    - name: Deploy success notification
+      run: |
+        echo "✅ Deployment completed successfully!"
+        echo "🌐 Your app is now live at: http://pipes.tafu.casa"
+        echo "📁 Deployed from: $(pwd)/build"
+        echo "📁 Deployed to: /var/www/pipe-dreams"
