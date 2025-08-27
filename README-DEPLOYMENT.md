@@ -14,7 +14,7 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 
 This deployment uses a **Node.js backend** approach:
 
-1. **SvelteKit App**: Built with `@sveltejs/adapter-node`, runs as a Node.js server on port 80
+1. **SvelteKit App**: Built with `@sveltejs/adapter-node`, runs as a Node.js server on port 3000
 2. **systemd**: Manages the Node.js service (auto-restart, logging, etc.)
 3. **GitHub Actions**: Automatically builds and deploys on every push to `main`
 
@@ -86,8 +86,8 @@ sudo journalctl -u pipe-dreams -f
 # Restart application if needed
 sudo systemctl restart pipe-dreams
 
-# Check if port 80 is listening
-sudo netstat -tlnp | grep :80
+# Check if port 3000 is listening
+sudo netstat -tlnp | grep :3000
 ```
 
 ### View Deployment Logs
@@ -103,7 +103,7 @@ sudo netstat -tlnp | grep :80
 
 ```bash
 # Allow HTTP and HTTPS
-sudo ufw allow 80
+sudo ufw allow 3000
 sudo ufw allow 443
 sudo ufw enable
 ```

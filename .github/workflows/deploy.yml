@@ -75,7 +75,7 @@ jobs:
         Restart=always
         RestartSec=10
         Environment=NODE_ENV=production
-        Environment=PORT=80
+        Environment=PORT=3000
         
         [Install]
         WantedBy=multi-user.target
@@ -90,21 +90,21 @@ jobs:
         echo "=== Service Status ==="
         sudo systemctl status pipe-dreams --no-pager -l
         
-        # Check if port 80 is listening
+        # Check if port 3000 is listening
         echo "=== Port Check ==="
-        sudo netstat -tlnp | grep :80 || echo "Port 80 not listening"
+        sudo netstat -tlnp | grep :3000 || echo "Port 3000 not listening"
         
         # Test the API endpoint locally
         echo "=== API Test ==="
-        curl -v http://localhost/api/test || echo "API test failed"
+        curl -v http://localhost:3000/api/test || echo "API test failed"
         
         # Test SteamCMD endpoint
         echo "=== SteamCMD API Test ==="
-        curl -v http://localhost/api/steamcmd/check || echo "SteamCMD API test failed"
+        curl -v http://localhost:3000/api/steamcmd/check || echo "SteamCMD API test failed"
         
         # Test debug endpoint
         echo "=== Debug API Test ==="
-        curl -v http://localhost/api/debug || echo "Debug API test failed"
+        curl -v http://localhost:3000/api/debug || echo "Debug API test failed"
         
         # Check service logs
         echo "=== Recent Service Logs ==="
@@ -113,6 +113,6 @@ jobs:
     - name: Deploy success notification
       run: |
         echo "✅ Deployment completed successfully!"
-        echo "🌐 Your app is now live at: http://pipes.tafu.casa"
+        echo "🌐 Your app is now live at: https://pipes.tafu.casa"
         echo "📁 Deployed from: $(pwd)/build"
         echo "📁 Deployed to: /var/www/pipe-dreams"
