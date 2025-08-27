@@ -96,7 +96,19 @@ jobs:
         
         # Test the API endpoint locally
         echo "=== API Test ==="
-        curl -s http://localhost:3000/api/test || echo "API test failed"
+        curl -v http://localhost:3000/api/test || echo "API test failed"
+        
+        # Test SteamCMD endpoint
+        echo "=== SteamCMD API Test ==="
+        curl -v http://localhost:3000/api/steamcmd/check || echo "SteamCMD API test failed"
+        
+        # Test debug endpoint
+        echo "=== Debug API Test ==="
+        curl -v http://localhost:3000/api/debug || echo "Debug API test failed"
+        
+        # Check service logs
+        echo "=== Recent Service Logs ==="
+        sudo journalctl -u pipe-dreams --no-pager -l -n 10
         
         # Restart web server
         sudo systemctl reload nginx
