@@ -1,18 +1,29 @@
-// Simplified version to test if the route is working
+import { steamCmdManager } from '$lib/steamcmd-manager.js';
+
 export async function POST() {
-  console.log('SteamCMD update endpoint called at:', new Date().toISOString());
-  
   try {
-    // Simple test response without SteamCMD wrapper dependency
+    const downloadStatus = steamCmdManager.getDownloadProgress();
+    if (downloadStatus && downloadStatus.isDownloading) {
+      return new Response(JSON.stringify({
+        success: true,
+        alreadyInProgress: true,
+        message: 'Download already in progress'
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const result = await steamCmdManager.downloadRust();
+
     return new Response(JSON.stringify({
       success: true,
       alreadyInProgress: false,
-      message: 'SteamCMD update endpoint is working (simplified)'
+      message: 'Download started successfully'
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in SteamCMD update endpoint:', error);
+    console.error('Error starting Rust download:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message

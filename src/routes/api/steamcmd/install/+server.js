@@ -1,18 +1,18 @@
-// Simplified version to test if the route is working
+import { steamCmdManager } from '$lib/steamcmd-manager.js';
+
 export async function POST() {
-  console.log('SteamCMD install endpoint called at:', new Date().toISOString());
-  
   try {
-    // Simple test response without SteamCMD wrapper dependency
+    const result = await steamCmdManager.install();
+
     return new Response(JSON.stringify({
       success: true,
-      message: 'SteamCMD install endpoint is working (simplified)',
-      path: '/test/path'
+      message: 'SteamCMD installed successfully',
+      path: result.path
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in SteamCMD install endpoint:', error);
+    console.error('Error installing SteamCMD:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message

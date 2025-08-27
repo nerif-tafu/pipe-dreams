@@ -1,20 +1,25 @@
-// Simplified version to test if the route is working
+import { steamCmdManager } from '$lib/steamcmd-manager.js';
+
 export async function GET() {
   console.log('SteamCMD check endpoint called at:', new Date().toISOString());
   
   try {
-    // Simple test response without SteamCMD wrapper dependency
+    const status = await steamCmdManager.checkInstallation();
+    const isLoggedIn = steamCmdManager.isLoggedIn();
+    const downloadStatus = steamCmdManager.getDownloadProgress();
+    
+    console.log('SteamCMD check result:', { status, isLoggedIn, downloadStatus });
+    
     return new Response(JSON.stringify({
-      available: false,
-      path: null,
-      isLoggedIn: false,
-      downloadStatus: null,
-      message: 'SteamCMD check endpoint is working (simplified)'
+      available: status.installed,
+      path: status.path,
+      isLoggedIn,
+      downloadStatus
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in SteamCMD check endpoint:', error);
+    console.error('Error checking SteamCMD status:', error);
     return new Response(JSON.stringify({
       available: false,
       path: null,

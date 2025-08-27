@@ -1,17 +1,17 @@
-// Simplified version to test if the route is working
+import { steamCmdManager } from '$lib/steamcmd-manager.js';
+
 export async function POST() {
-  console.log('SteamCMD cancel endpoint called at:', new Date().toISOString());
-  
   try {
-    // Simple test response without SteamCMD wrapper dependency
+    const result = await steamCmdManager.cancelDownload();
+
     return new Response(JSON.stringify({
       success: true,
-      message: 'SteamCMD cancel endpoint is working (simplified)'
+      message: 'Download cancelled successfully'
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error in SteamCMD cancel endpoint:', error);
+    console.error('Error cancelling download:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message
