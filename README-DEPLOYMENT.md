@@ -10,6 +10,23 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 - Administrator/sudo access
 - A GitHub repository with your code
 
+### SteamCMD Dependencies (Linux)
+
+If you plan to use the SteamCMD functionality to download game data, you'll need to install the required dependencies on your Linux server:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install lib32gcc-s1
+```
+
+**Enterprise Linux (RHEL/CentOS):**
+```bash
+sudo yum install glibc.i686 libstdc++.i686
+```
+
+These dependencies are required for SteamCMD to run properly on Linux systems.
+
 ## 🏗️ Architecture
 
 This deployment uses a **Node.js backend** approach:
