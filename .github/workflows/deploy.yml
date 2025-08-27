@@ -31,6 +31,9 @@ jobs:
         echo "Build directory contents:"
         ls -la build/ || echo "Build directory not found, checking current directory:"
         ls -la
+        
+    - name: Install Node.js adapter
+      run: npm install @sveltejs/adapter-node
       
     - name: Create deployment directory
       run: |
@@ -38,17 +41,48 @@ jobs:
         sudo mkdir -p /var/www/pipe-dreams
         sudo chown -R $USER:$USER /var/www/pipe-dreams
         
-    - name: Deploy to web server
+    - name: Deploy Node.js application
       run: |
         # Copy built files to web server directory
         cp -r build/* /var/www/pipe-dreams/
+        cp package.json /var/www/pipe-dreams/
+        cp package-lock.json /var/www/pipe-dreams/
+        
+        # Install production dependencies
+        cd /var/www/pipe-dreams
+        npm ci --production
         
         # Set proper permissions
         sudo chown -R www-data:www-data /var/www/pipe-dreams
         sudo chmod -R 755 /var/www/pipe-dreams
         
-        # Restart web server (adjust based on your setup)
-        sudo systemctl reload nginx || sudo systemctl reload apache2 || echo "Web server reload skipped"
+        # Create systemd service file
+        sudo tee /etc/systemd/system/pipe-dreams.service > /dev/null <<EOF
+        [Unit]
+        Description=Pipe Dreams SvelteKit App
+        After=network.target
+        
+        [Service]
+        Type=simple
+        User=www-data
+        WorkingDirectory=/var/www/pipe-dreams
+        ExecStart=/usr/bin/node build/index.js
+        Restart=always
+        RestartSec=10
+        Environment=NODE_ENV=production
+        Environment=PORT=3000
+        
+        [Install]
+        WantedBy=multi-user.target
+        EOF
+        
+        # Reload systemd and enable/start service
+        sudo systemctl daemon-reload
+        sudo systemctl enable pipe-dreams
+        sudo systemctl restart pipe-dreams
+        
+        # Restart web server
+        sudo systemctl reload nginx
         
     - name: Deploy success notification
       run: |

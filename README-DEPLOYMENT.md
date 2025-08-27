@@ -10,6 +10,15 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 - Administrator/sudo access
 - A GitHub repository with your code
 
+## 🏗️ Architecture
+
+This deployment uses a **Node.js backend** approach:
+
+1. **SvelteKit App**: Runs as a Node.js server on port 3000
+2. **Nginx**: Acts as a reverse proxy, forwarding requests to the Node.js app
+3. **systemd**: Manages the Node.js service (auto-restart, logging, etc.)
+4. **GitHub Actions**: Automatically builds and deploys on every push to `main`
+
 ## 🔧 Setup Instructions
 
 ### Step 1: Set Up GitHub Actions Runner
@@ -42,10 +51,13 @@ After setup, your deployment will have this structure:
 
 ```
 /var/www/pipe-dreams/          # Deployment directory
-├── index.html
-├── _app/
-├── static/
-└── ... (other built files)
+├── build/                     # Built Node.js application
+│   ├── index.js              # Main application entry point
+│   ├── client/               # Client-side assets
+│   └── server/               # Server-side code
+├── node_modules/             # Production dependencies
+├── package.json              # Package configuration
+└── package-lock.json         # Dependency lock file
 ```
 
 ## 🔍 Monitoring and Troubleshooting
@@ -63,11 +75,21 @@ journalctl -u actions.runner.* -f
 sudo systemctl restart actions.runner.*
 ```
 
-### Check Web Server Status
+### Check Application Status
 
 ```bash
+# Check Node.js application status
+sudo systemctl status pipe-dreams
+
+# Check Nginx status
 sudo systemctl status nginx
 sudo nginx -t  # Test configuration
+
+# View application logs
+sudo journalctl -u pipe-dreams -f
+
+# Restart application if needed
+sudo systemctl restart pipe-dreams
 ```
 
 ### View Deployment Logs
