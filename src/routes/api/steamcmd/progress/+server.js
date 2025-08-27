@@ -1,31 +1,33 @@
-import { steamCmdManager } from '$lib/steamcmd-manager.js';
-
+// Simplified version to test if the route is working
 export async function GET() {
+  console.log('SteamCMD progress endpoint called at:', new Date().toISOString());
+  
   const stream = new ReadableStream({
     start(controller) {
       const sendProgress = () => {
         try {
-          const progress = steamCmdManager.getDownloadProgress();
+          // Simple test progress data without SteamCMD wrapper dependency
+          const data = JSON.stringify({
+            progress: 50,
+            status: 'SteamCMD progress endpoint is working (simplified)',
+            complete: false
+          });
           
-          if (progress) {
-            const data = JSON.stringify({
-              progress: progress.progress || 0,
-              status: progress.status || 'Downloading...',
-              complete: progress.complete || false
+          controller.enqueue(`data: ${data}\n\n`);
+          
+          // Send one update and close
+          setTimeout(() => {
+            const completeData = JSON.stringify({
+              progress: 100,
+              status: 'Complete',
+              complete: true
             });
-            
-            controller.enqueue(`data: ${data}\n\n`);
-            
-            if (progress.complete) {
-              controller.close();
-              return;
-            }
-          }
+            controller.enqueue(`data: ${completeData}\n\n`);
+            controller.close();
+          }, 1000);
           
-          // Continue polling every second
-          setTimeout(sendProgress, 1000);
         } catch (error) {
-          console.error('Error in progress stream:', error);
+          console.error('Error in SteamCMD progress endpoint:', error);
           controller.close();
         }
       };

@@ -1,6 +1,7 @@
-import { steamCmdManager } from '$lib/steamcmd-manager.js';
-
+// Simplified version to test if the route is working
 export async function POST({ request }) {
+  console.log('SteamCMD login endpoint called at:', new Date().toISOString());
+  
   try {
     const { username, password } = await request.json();
     
@@ -14,16 +15,15 @@ export async function POST({ request }) {
       });
     }
 
-    const result = await steamCmdManager.login(username, password);
-    
+    // Simple test response without SteamCMD wrapper dependency
     return new Response(JSON.stringify({
       success: true,
-      message: 'Login successful'
+      message: 'SteamCMD login endpoint is working (simplified)'
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error logging in to SteamCMD:', error);
+    console.error('Error in SteamCMD login endpoint:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error.message
