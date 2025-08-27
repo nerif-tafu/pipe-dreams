@@ -5,7 +5,7 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 ## 📋 Prerequisites
 
 - A server or local machine where you want to host the app
-- Node.js 18+ installed
+- Node.js 20+ installed
 - Git installed
 - Administrator/sudo access
 - A GitHub repository with your code
@@ -116,7 +116,7 @@ sudo ufw enable
 - Verify network connectivity to GitHub
 
 ### Build Failures
-- Check Node.js version (requires 18+)
+- Check Node.js version (requires 20+)
 - Ensure all dependencies are installed
 - Review the build logs in GitHub Actions
 
