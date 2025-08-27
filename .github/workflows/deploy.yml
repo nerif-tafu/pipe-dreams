@@ -86,6 +86,18 @@ jobs:
         sudo systemctl enable pipe-dreams
         sudo systemctl restart pipe-dreams
         
+        # Check if service started successfully
+        echo "=== Service Status ==="
+        sudo systemctl status pipe-dreams --no-pager -l
+        
+        # Check if port 3000 is listening
+        echo "=== Port Check ==="
+        sudo netstat -tlnp | grep :3000 || echo "Port 3000 not listening"
+        
+        # Test the API endpoint locally
+        echo "=== API Test ==="
+        curl -s http://localhost:3000/api/test || echo "API test failed"
+        
         # Restart web server
         sudo systemctl reload nginx
         

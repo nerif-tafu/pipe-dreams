@@ -5,7 +5,11 @@ const config = {
 	kit: {
 		adapter: adapter({
 			out: 'build'
-		})
+		}),
+		// Ensure API routes are properly handled
+		alias: {
+			$lib: './src/lib'
+		}
 	}
 };
 
