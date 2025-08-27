@@ -75,7 +75,7 @@ jobs:
         Restart=always
         RestartSec=10
         Environment=NODE_ENV=production
-        Environment=PORT=3000
+        Environment=PORT=80
         
         [Install]
         WantedBy=multi-user.target
@@ -90,28 +90,25 @@ jobs:
         echo "=== Service Status ==="
         sudo systemctl status pipe-dreams --no-pager -l
         
-        # Check if port 3000 is listening
+        # Check if port 80 is listening
         echo "=== Port Check ==="
-        sudo netstat -tlnp | grep :3000 || echo "Port 3000 not listening"
+        sudo netstat -tlnp | grep :80 || echo "Port 80 not listening"
         
         # Test the API endpoint locally
         echo "=== API Test ==="
-        curl -v http://localhost:3000/api/test || echo "API test failed"
+        curl -v http://localhost/api/test || echo "API test failed"
         
         # Test SteamCMD endpoint
         echo "=== SteamCMD API Test ==="
-        curl -v http://localhost:3000/api/steamcmd/check || echo "SteamCMD API test failed"
+        curl -v http://localhost/api/steamcmd/check || echo "SteamCMD API test failed"
         
         # Test debug endpoint
         echo "=== Debug API Test ==="
-        curl -v http://localhost:3000/api/debug || echo "Debug API test failed"
+        curl -v http://localhost/api/debug || echo "Debug API test failed"
         
         # Check service logs
         echo "=== Recent Service Logs ==="
         sudo journalctl -u pipe-dreams --no-pager -l -n 10
-        
-        # Restart web server
-        sudo systemctl reload nginx
         
     - name: Deploy success notification
       run: |

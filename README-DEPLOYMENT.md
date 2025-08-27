@@ -14,10 +14,9 @@ This guide will help you set up automatic deployment of your Pipe Dreams app usi
 
 This deployment uses a **Node.js backend** approach:
 
-1. **SvelteKit App**: Built with `@sveltejs/adapter-node`, runs as a Node.js server on port 3000
-2. **Nginx**: Acts as a reverse proxy, forwarding requests to the Node.js app
-3. **systemd**: Manages the Node.js service (auto-restart, logging, etc.)
-4. **GitHub Actions**: Automatically builds and deploys on every push to `main`
+1. **SvelteKit App**: Built with `@sveltejs/adapter-node`, runs as a Node.js server on port 80
+2. **systemd**: Manages the Node.js service (auto-restart, logging, etc.)
+3. **GitHub Actions**: Automatically builds and deploys on every push to `main`
 
 ## 🔧 Setup Instructions
 
@@ -81,15 +80,14 @@ sudo systemctl restart actions.runner.*
 # Check Node.js application status
 sudo systemctl status pipe-dreams
 
-# Check Nginx status
-sudo systemctl status nginx
-sudo nginx -t  # Test configuration
-
 # View application logs
 sudo journalctl -u pipe-dreams -f
 
 # Restart application if needed
 sudo systemctl restart pipe-dreams
+
+# Check if port 80 is listening
+sudo netstat -tlnp | grep :80
 ```
 
 ### View Deployment Logs
@@ -101,34 +99,21 @@ sudo systemctl restart pipe-dreams
 
 ## 🔒 Security Considerations
 
-### Reverse Proxy Configuration
-
-**Main Nginx Server (SSL termination):**
-```nginx
-server {
-    listen 443 ssl;
-    server_name pipes.tafu.casa;
-    
-    ssl_certificate /path/to/your/certificate.crt;
-    ssl_certificate_key /path/to/your/private.key;
-    
-    location / {
-        proxy_pass http://backend-server:80;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
 ### Firewall Configuration
 
 ```bash
-# Allow HTTP only (SSL handled by reverse proxy)
+# Allow HTTP and HTTPS
 sudo ufw allow 80
+sudo ufw allow 443
 sudo ufw enable
 ```
+
+### SSL Configuration
+
+For SSL termination, you can either:
+1. **Use a reverse proxy** (like Nginx or Caddy) in front of the Node.js app
+2. **Configure SSL directly in the Node.js app** using a library like `https`
+3. **Use a load balancer** with SSL termination
 
 ## 🚨 Common Issues and Solutions
 
@@ -154,11 +139,11 @@ sudo ufw enable
 
 ## 📊 Performance Optimization
 
-### Nginx Configuration
-The provided nginx config includes:
-- Gzip compression
-- Static asset caching
-- Proxy header support
+### Node.js Configuration
+The SvelteKit app includes:
+- Built-in gzip compression
+- Static asset serving
+- API route handling
 - SPA routing support
 
 ## 🔄 Updating the Runner
