@@ -31,6 +31,8 @@ jobs:
         echo "Build directory contents:"
         ls -la build/ || echo "Build directory not found, checking current directory:"
         ls -la
+        echo "=== Build directory structure ==="
+        find build/ -type f -name "*.js" | head -10 || echo "No JS files found in build"
         
     - name: Create deployment directory
       run: |
@@ -53,6 +55,12 @@ jobs:
         sudo chown -R www-data:www-data /var/www/pipe-dreams
         sudo chmod -R 755 /var/www/pipe-dreams
         
+        # Debug: Check what files are actually in the deployment directory
+        echo "=== Deployment directory contents ==="
+        ls -la /var/www/pipe-dreams/
+        echo "=== Build directory contents ==="
+        ls -la /var/www/pipe-dreams/build/ || echo "No build directory found"
+        
         # Create systemd service file
         sudo tee /etc/systemd/system/pipe-dreams.service > /dev/null <<EOF
         [Unit]
@@ -63,7 +71,7 @@ jobs:
         Type=simple
         User=www-data
         WorkingDirectory=/var/www/pipe-dreams
-        ExecStart=/usr/bin/node build/index.js
+        ExecStart=/usr/bin/node index.js
         Restart=always
         RestartSec=10
         Environment=NODE_ENV=production
