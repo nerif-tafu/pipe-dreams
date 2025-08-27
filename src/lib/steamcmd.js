@@ -17,8 +17,8 @@ export class SteamCmdWrapper {
     if (platform === 'win32') {
       this.steamCmdExe = join(this.steamCmdDir, 'steamcmd.exe');
     } else {
-      // Linux/macOS use steamcmd (no extension)
-      this.steamCmdExe = join(this.steamCmdDir, 'steamcmd');
+      // Linux/macOS use steamcmd from linux32 directory
+      this.steamCmdExe = join(this.steamCmdDir, 'linux32', 'steamcmd');
     }
     
     this.isInstalled = false;
@@ -116,6 +116,13 @@ export class SteamCmdWrapper {
           const { chmod } = await import('fs/promises');
           await chmod(this.steamCmdExe, 0o755);
           console.log('Set executable permissions on SteamCMD');
+          
+          // Also set permissions on the shell script if it exists
+          const shellScriptPath = join(this.steamCmdDir, 'steamcmd.sh');
+          if (existsSync(shellScriptPath)) {
+            await chmod(shellScriptPath, 0o755);
+            console.log('Set executable permissions on steamcmd.sh');
+          }
         } catch (chmodError) {
           console.error('Failed to set executable permissions:', chmodError);
           // Don't fail the installation for this, just warn
