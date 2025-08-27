@@ -23,6 +23,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 /src/generated/prisma
-steamcmd/
+/steamcmd/
 data-extract/
 /static/items/*
