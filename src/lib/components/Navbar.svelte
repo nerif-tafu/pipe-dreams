@@ -2,6 +2,7 @@
   export let currentPage = '';
   export let hasUnsavedChanges = false;
   export let onSave = () => {};
+  export let showLayoutsButton = true;
   
   let showUnsavedWarning = false;
   let pendingNavigation = null;
@@ -37,7 +38,7 @@
         <p class="text-gray-600">Plan your item sorting system</p>
       </div>
                    <nav class="flex items-center space-x-4">
-        {#if currentPage === 'planner'}
+        {#if currentPage === 'planner' && showLayoutsButton}
           <button
             on:click={onSave}
             class="px-4 py-2 rounded-md transition-colors flex items-center space-x-2 {!hasUnsavedChanges ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-orange-600 text-white hover:bg-orange-700'}"

@@ -9,6 +9,7 @@
   let rustItems = [];
   let isLoading = true;
   let loadError = null;
+  let noGameData = false;
 
   // State
   let selectedItems = [];
@@ -177,13 +178,26 @@
     try {
       isLoading = true;
       loadError = null;
+      noGameData = false;
       
       const response = await fetch('/api/rules/filtered-items');
       if (!response.ok) {
+        if (response.status === 500) {
+          noGameData = true;
+          isLoading = false;
+          return;
+        }
         throw new Error('Failed to load item data');
       }
       
       const rawItems = await response.json();
+      
+      // Check if we have any items
+      if (!rawItems || rawItems.length === 0) {
+        noGameData = true;
+        isLoading = false;
+        return;
+      }
       
       // Load rules from localStorage
       const savedExclusions = localStorage.getItem('rust-item-exclusions');
@@ -265,6 +279,7 @@
     } catch (error) {
       console.error('Error loading item data:', error);
       loadError = error.message;
+      noGameData = true;
       isLoading = false;
     }
   }
@@ -357,14 +372,14 @@
   }
 
   // Categories
-  $: categories = ['All', ...new Set(rustItems.map(item => item.category))];
+  $: categories = ['All', ...new Set((rustItems || []).map(item => item.category))];
 
   // Filtered items for main list
-  $: filteredItems = rustItems.filter(item => {
+  $: filteredItems = rustItems ? rustItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Toggle selection in main list
   function toggleItem(item) {
@@ -624,6 +639,7 @@
   <Navbar 
     currentPage="planner" 
     {hasUnsavedChanges}
+    showLayoutsButton={!noGameData}
     onSave={() => {
       // Prefill save name if we have a loaded save
       if (currentLoadedSave) {
@@ -634,92 +650,112 @@
   />
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Available Items -->
-      <div class="bg-white rounded-lg shadow-sm border p-6 lg:col-span-1">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Available Items</h2>
-        
-        <!-- Search and Filter -->
-        <div class="space-y-3 mb-4">
-          <input
-            type="text"
-            placeholder="Search items..."
-            bind:value={searchTerm}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <select
-            bind:value={selectedCategory}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {#each categories as category}
-              <option value={category}>{category}</option>
-            {/each}
-          </select>
-        </div>
-
-        <!-- Selected Count -->
-        <div class="mb-4 p-3 bg-blue-50 rounded-md">
-          <p class="text-sm text-blue-800">
-            Selected: <span class="font-semibold">{selectedItems.length}</span> items
-          </p>
-        </div>
-
-        <!-- Items List -->
-        <div class="space-y-2 max-h-[50vh] overflow-y-auto">
-          {#if isLoading}
-            <div class="text-center py-8">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-              <p class="text-gray-500">Loading items...</p>
-            </div>
-          {:else if loadError}
-            <div class="text-center py-8">
-              <div class="text-red-500 text-4xl mb-4">⚠️</div>
-              <p class="text-red-600 mb-2">Failed to load items</p>
-              <p class="text-sm text-gray-500 mb-4">{loadError}</p>
-              <button
-                on:click={loadItemData}
-                class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          {:else if filteredItems.length === 0}
-            <div class="text-center py-8">
-              <div class="text-gray-400 text-4xl mb-4">🔍</div>
-              <p class="text-gray-500">No items found matching your search</p>
-            </div>
-          {:else}
-            {#each filteredItems as item}
-              {@const isSelected = selectedItems.some(i => i.id === item.id)}
-              <button
-                on:click={() => toggleItem(item)}
-                class="w-full flex items-center p-3 rounded-md border transition-colors"
-                class:bg-green-50={isSelected}
-                class:border-green-200={isSelected}
-                class:text-green-900={isSelected}
-                class:bg-white={!isSelected}
-                class:border-gray-200={!isSelected}
-                class:hover:bg-gray-50={!isSelected}
-              >
-                <img 
-                  src="/items/{item.filename}.png" 
-                  alt={item.name}
-                  class="w-8 h-8 mr-3 object-contain"
-                />
-                <div class="text-left flex-1">
-                  <div class="font-medium">{item.name}</div>
-                  <div class="text-sm text-gray-500">
-                    {item.category}
-                    {#if item.isVariationGroup && item.variationCount > 0}
-                      <span class="ml-2 text-blue-600">(+{item.variationCount} variations)</span>
-                    {/if}
-                  </div>
-                </div>
-              </button>
-            {/each}
-          {/if}
-        </div>
+    {#if isLoading}
+      <div class="text-center py-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+        <p class="mt-4 text-gray-600">Loading pipe planner...</p>
       </div>
+    {:else if noGameData}
+      <div class="bg-blue-50 border border-blue-200 rounded-md p-6 text-center">
+        <div class="mb-4">
+          <svg class="w-16 h-16 text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-blue-900 mb-2">No Game Data Available</h3>
+        <p class="text-blue-700 mb-4">
+          You need to download Rust game data before you can use the pipe planner.
+        </p>
+        <a 
+          href="/data" 
+          class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Go to Data Tab
+        </a>
+      </div>
+    {:else if loadError}
+      <div class="bg-red-50 border border-red-200 rounded-md p-4">
+        <p class="text-red-800">Error loading data: {loadError}</p>
+        <button 
+          on:click={loadItemData}
+          class="mt-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Available Items -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 lg:col-span-1">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Available Items</h2>
+          
+          <!-- Search and Filter -->
+          <div class="space-y-3 mb-4">
+            <input
+              type="text"
+              placeholder="Search items..."
+              bind:value={searchTerm}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <select
+              bind:value={selectedCategory}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {#each categories as category}
+                <option value={category}>{category}</option>
+              {/each}
+            </select>
+          </div>
+
+          <!-- Selected Count -->
+          <div class="mb-4 p-3 bg-blue-50 rounded-md">
+            <p class="text-sm text-blue-800">
+              Selected: <span class="font-semibold">{selectedItems.length}</span> items
+            </p>
+          </div>
+
+          <!-- Items List -->
+          <div class="space-y-2 max-h-[50vh] overflow-y-auto">
+            {#if filteredItems.length === 0}
+              <div class="text-center py-8">
+                <div class="text-gray-400 text-4xl mb-4">🔍</div>
+                <p class="text-gray-500">No items found matching your search</p>
+              </div>
+            {:else}
+              {#each filteredItems as item}
+                {@const isSelected = selectedItems.some(i => i.id === item.id)}
+                <button
+                  on:click={() => toggleItem(item)}
+                  class="w-full flex items-center p-3 rounded-md border transition-colors"
+                  class:bg-green-50={isSelected}
+                  class:border-green-200={isSelected}
+                  class:text-green-900={isSelected}
+                  class:bg-white={!isSelected}
+                  class:border-gray-200={!isSelected}
+                  class:hover:bg-gray-50={!isSelected}
+                >
+                  <img 
+                    src="/items/{item.filename}.png" 
+                    alt={item.name}
+                    class="w-8 h-8 mr-3 object-contain"
+                  />
+                  <div class="text-left flex-1">
+                    <div class="font-medium">{item.name}</div>
+                    <div class="text-sm text-gray-500">
+                      {item.category}
+                      {#if item.isVariationGroup && item.variationCount > 0}
+                        <span class="ml-2 text-blue-600">(+{item.variationCount} variations)</span>
+                      {/if}
+                    </div>
+                  </div>
+                </button>
+              {/each}
+            {/if}
+          </div>
+        </div>
 
       <!-- Conveyors -->
       <div class="bg-white rounded-lg shadow-sm border p-6 lg:col-span-2 flex flex-col max-h-[78vh]">
@@ -933,6 +969,7 @@
         </div>
       </div>
     </div>
+  {/if}
   </div>
 
   <!-- Assign Items Modal -->
