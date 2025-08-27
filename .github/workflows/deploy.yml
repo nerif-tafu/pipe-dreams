@@ -27,7 +27,7 @@ jobs:
       run: |
         # Install SteamCMD dependencies for Linux
         sudo apt-get update
-        sudo apt-get install -y lib32gcc-s1
+        sudo apt-get install -y lib32gcc-s1 libcurl4 libcurl4-openssl-dev
       
     - name: Build application
       run: npm run build

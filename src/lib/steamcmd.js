@@ -267,13 +267,14 @@ export class SteamCmdWrapper {
         }
       }
 
-      // Create login script
-      const scriptContent = `
-@ShutdownOnFailedCommand 1
-@NoPromptForPassword 1
-login ${username} ${password}
-quit
-      `.trim();
+             // Create login script
+       const scriptContent = `
+ @ShutdownOnFailedCommand 1
+ @NoPromptForPassword 1
+ @sSteamCmdForcePlatformType windows
+ login ${username} ${password}
+ quit
+       `.trim();
 
       const scriptPath = join(this.steamCmdDir, 'login_script.txt');
       
@@ -345,15 +346,16 @@ quit
         throw new Error('Download already in progress');
       }
 
-      // Create download script
-      const scriptContent = `
-@ShutdownOnFailedCommand 1
-@NoPromptForPassword 1
-force_install_dir ./rust
-login ${this.username} ${this.password}
-app_update 252490 validate
-quit
-      `.trim();
+             // Create download script
+       const scriptContent = `
+ @ShutdownOnFailedCommand 1
+ @NoPromptForPassword 1
+ @sSteamCmdForcePlatformType windows
+ force_install_dir ./rust
+ login ${this.username} ${this.password}
+ app_update 252490 validate
+ quit
+       `.trim();
 
       const scriptPath = join(this.steamCmdDir, 'download_rust.txt');
       
