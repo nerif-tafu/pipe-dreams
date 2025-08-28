@@ -61,6 +61,11 @@ jobs:
         sudo chown -R www-data:www-data /var/www/pipe-dreams
         sudo chmod -R 755 /var/www/pipe-dreams
         
+        # Create SteamCMD directory with proper permissions for downloads
+        sudo mkdir -p /var/www/pipe-dreams/steamcmd
+        sudo chown -R www-data:www-data /var/www/pipe-dreams/steamcmd
+        sudo chmod -R 777 /var/www/pipe-dreams/steamcmd
+        
         # Debug: Check what files are actually in the deployment directory
         echo "=== Deployment directory contents ==="
         ls -la /var/www/pipe-dreams/
