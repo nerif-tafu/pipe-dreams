@@ -53,6 +53,10 @@ jobs:
         cp package.json /var/www/pipe-dreams/
         cp package-lock.json /var/www/pipe-dreams/
         
+        # Create dedicated user for the application with sudo access (FIRST!)
+        sudo useradd -m -s /bin/bash pipe-dreams-user || echo "User already exists"
+        echo "pipe-dreams-user ALL=(ALL) NOPASSWD: /usr/bin/mkdir, /usr/bin/chmod, /usr/bin/chown, /usr/bin/tar, /usr/bin/rm" | sudo tee /etc/sudoers.d/pipe-dreams-user
+        
         # Install production dependencies
         cd /var/www/pipe-dreams
         npm ci --production
@@ -60,10 +64,6 @@ jobs:
         # Set proper permissions for the new user
         sudo chown -R pipe-dreams-user:pipe-dreams-user /var/www/pipe-dreams
         sudo chmod -R 755 /var/www/pipe-dreams
-        
-        # Create dedicated user for the application with sudo access
-        sudo useradd -m -s /bin/bash pipe-dreams-user || echo "User already exists"
-        echo "pipe-dreams-user ALL=(ALL) NOPASSWD: /usr/bin/mkdir, /usr/bin/chmod, /usr/bin/chown, /usr/bin/tar, /usr/bin/rm" | sudo tee /etc/sudoers.d/pipe-dreams-user
         
         # Create SteamCMD directory with proper permissions for downloads
         sudo mkdir -p /var/www/pipe-dreams/steamcmd
