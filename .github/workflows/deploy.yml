@@ -70,6 +70,11 @@ jobs:
         sudo chown -R pipe-dreams-user:pipe-dreams-user /var/www/pipe-dreams/steamcmd
         sudo chmod -R 755 /var/www/pipe-dreams/steamcmd
         
+        # Create static/items directory for processed game data
+        sudo mkdir -p /var/www/pipe-dreams/static/items
+        sudo chown -R pipe-dreams-user:pipe-dreams-user /var/www/pipe-dreams/static/items
+        sudo chmod -R 755 /var/www/pipe-dreams/static/items
+        
         # Debug: Check what files are actually in the deployment directory
         echo "=== Deployment directory contents ==="
         ls -la /var/www/pipe-dreams/
