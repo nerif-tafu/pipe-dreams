@@ -10,6 +10,7 @@ const execAsync = promisify(exec);
 export class SteamCmdWrapper {
   constructor(projectRoot) {
     this.projectRoot = projectRoot;
+    // Use a persistent location within the project directory
     this.steamCmdDir = join(projectRoot, 'steamcmd');
     
     // Platform-agnostic executable name

@@ -57,14 +57,18 @@ jobs:
         cd /var/www/pipe-dreams
         npm ci --production
         
-        # Set proper permissions
-        sudo chown -R www-data:www-data /var/www/pipe-dreams
+        # Set proper permissions for the new user
+        sudo chown -R pipe-dreams-user:pipe-dreams-user /var/www/pipe-dreams
         sudo chmod -R 755 /var/www/pipe-dreams
+        
+        # Create dedicated user for the application with sudo access
+        sudo useradd -m -s /bin/bash pipe-dreams-user || echo "User already exists"
+        echo "pipe-dreams-user ALL=(ALL) NOPASSWD: /usr/bin/mkdir, /usr/bin/chmod, /usr/bin/chown, /usr/bin/tar, /usr/bin/rm" | sudo tee /etc/sudoers.d/pipe-dreams-user
         
         # Create SteamCMD directory with proper permissions for downloads
         sudo mkdir -p /var/www/pipe-dreams/steamcmd
-        sudo chown -R www-data:www-data /var/www/pipe-dreams/steamcmd
-        sudo chmod -R 777 /var/www/pipe-dreams/steamcmd
+        sudo chown -R pipe-dreams-user:pipe-dreams-user /var/www/pipe-dreams/steamcmd
+        sudo chmod -R 755 /var/www/pipe-dreams/steamcmd
         
         # Debug: Check what files are actually in the deployment directory
         echo "=== Deployment directory contents ==="
@@ -80,7 +84,7 @@ jobs:
         
         [Service]
         Type=simple
-        User=www-data
+        User=pipe-dreams-user
         WorkingDirectory=/var/www/pipe-dreams
         ExecStart=/usr/bin/node index.js
         Restart=always
