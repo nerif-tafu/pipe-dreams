@@ -472,7 +472,8 @@ export class SteamCmdWrapper {
     return {
       progress: this.downloadProgress,
       status: this.downloadStatus,
-      isDownloading: this.isDownloading
+      isDownloading: this.isDownloading,
+      complete: this.downloadProgress === 100 && this.downloadStatus.includes('Download completed successfully')
     };
   }
 
