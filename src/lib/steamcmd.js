@@ -423,14 +423,17 @@ export class SteamCmdWrapper {
           }
 
           if (exitCode === 0) {
-            // Check for successful completion indicators
-            const output = stdout + stderr;
-            const successIndicators = [
-              'Success! App \'244390\' fully installed.',
-              'App \'244390\' state changed : Fully Installed',
-              'Update complete',
-              'App \'244390\' fully installed'
-            ];
+                         // Check for successful completion indicators
+             const output = stdout + stderr;
+             const successIndicators = [
+               'Success! App \'252490\' fully installed.',
+               'App \'252490\' state changed : Fully Installed',
+               'Update complete',
+               'App \'252490\' fully installed',
+               'Success! App \'244390\' fully installed.',
+               'App \'244390\' state changed : Fully Installed',
+               'App \'244390\' fully installed'
+             ];
             
             const isSuccessful = successIndicators.some(indicator => 
               output.includes(indicator)
