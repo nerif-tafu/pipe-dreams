@@ -5,7 +5,7 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import Toast from '$lib/components/Toast.svelte';
 
-  // Items data - will be loaded from processed game data
+  // Items data - will be loaded from external API
   let rustItems = [];
   let isLoading = true;
   let loadError = null;
@@ -180,9 +180,9 @@
       loadError = null;
       noGameData = false;
       
-      const response = await fetch('/api/rules/filtered-items');
+      const response = await fetch('/api/items/data');
       if (!response.ok) {
-        if (response.status === 500) {
+        if (response.status === 404) {
           noGameData = true;
           isLoading = false;
           return;
@@ -662,18 +662,18 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
           </svg>
         </div>
-        <h3 class="text-lg font-semibold text-blue-900 mb-2">No Game Data Available</h3>
+        <h3 class="text-lg font-semibold text-blue-900 mb-2">No Item Data Available</h3>
         <p class="text-blue-700 mb-4">
-          You need to download Rust game data before you can use the pipe planner.
+          You need to refresh item data from the external API before you can use the pipe planner.
         </p>
         <a 
           href="/data" 
           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          Go to Data Tab
+          Refresh Data
         </a>
       </div>
     {:else if loadError}

@@ -122,7 +122,7 @@
       noGameData = false;
       
       // Load available items
-      const itemsResponse = await fetch('/items/item-data.json');
+      const itemsResponse = await fetch('/api/items/data');
       if (itemsResponse.ok) {
         const rawItems = await itemsResponse.json();
         availableItems = rawItems
