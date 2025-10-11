@@ -192,6 +192,9 @@
       
       const rawItems = await response.json();
       
+      console.log('Raw items loaded:', rawItems.length);
+      console.log('Sample item:', rawItems[0]);
+      
       // Check if we have any items
       if (!rawItems || rawItems.length === 0) {
         noGameData = true;
@@ -208,7 +211,14 @@
       
       // Transform the raw item data into the format we need
       const itemsWithFilenames = rawItems
-        .filter(item => item.filename && item.filename.trim() !== '') // Only items with valid filenames
+        .filter(item => {
+          const hasFilename = item.filename && item.filename.trim() !== '';
+          if (item.shortname === 'basicblueprintfragment') {
+            console.log('basicblueprintfragment item:', item);
+            console.log('Has filename:', hasFilename);
+          }
+          return hasFilename;
+        }) // Only items with valid filenames
         .map((item, index) => ({
           id: item.itemid || index + 1,
           name: item.Name || item.shortname || 'Unknown Item',
@@ -275,6 +285,9 @@
         return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       });
       
+      console.log('Final rustItems count:', rustItems.length);
+      console.log('basicblueprintfragment in final items:', rustItems.find(item => item.shortname === 'basicblueprintfragment'));
+      
       isLoading = false;
     } catch (error) {
       console.error('Error loading item data:', error);
@@ -286,8 +299,8 @@
 
   // Helper function to get appropriate icons for items
   function getItemIcon(name, category) {
-    const lowerName = name.toLowerCase();
-    const lowerCategory = category.toLowerCase();
+    const lowerName = name ? name.toLowerCase() : '';
+    const lowerCategory = category ? category.toLowerCase() : '';
     
     // Weapon icons
     if (lowerCategory.includes('weapon') || lowerName.includes('rifle') || lowerName.includes('pistol') || lowerName.includes('smg')) {
