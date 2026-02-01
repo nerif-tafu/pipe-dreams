@@ -26,6 +26,7 @@
   let saves = [];
   let currentLoadedSave = null;
   let hasUnsavedChanges = false;
+  let importFileInput;
 
   // Toast state
   let toastMessage = '';
@@ -172,6 +173,73 @@
       console.error('Error deleting save:', error);
       alert('Failed to delete save. Please try again.');
     }
+  }
+
+  function exportSingleSave(save) {
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      app: 'pipe-dreams',
+      saves: [save]
+    };
+    const safeName = save.name.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-') || 'layout';
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pipe-dreams-${safeName}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToastMessage(`"${save.name}" exported.`, 'success');
+  }
+
+  function triggerImport() {
+    importFileInput?.click();
+  }
+
+  async function handleImportFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const importedSaves = Array.isArray(data) ? data : data.saves;
+      if (!Array.isArray(importedSaves) || importedSaves.length === 0) {
+        showToastMessage('Invalid file: no saves array found.', 'error');
+        event.target.value = '';
+        return;
+      }
+      const validSaves = importedSaves.filter(s => s && typeof s.name === 'string' && Array.isArray(s.selectedItems) && Array.isArray(s.conveyors));
+      if (validSaves.length === 0) {
+        showToastMessage('No valid layout entries in file.', 'error');
+        event.target.value = '';
+        return;
+      }
+      const newSaves = [...saves];
+      for (const save of validSaves) {
+        const payload = {
+          id: save.id ?? Date.now() + Math.random(),
+          name: save.name.trim(),
+          timestamp: save.timestamp ?? new Date().toISOString(),
+          selectedItems: save.selectedItems ?? [],
+          conveyors: save.conveyors ?? []
+        };
+        const idx = newSaves.findIndex(s => s.name === payload.name);
+        if (idx !== -1) {
+          newSaves[idx] = payload;
+        } else {
+          newSaves.push(payload);
+        }
+      }
+      newSaves.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      saves = newSaves;
+      localStorage.setItem('rust-conveyor-saves', JSON.stringify(saves));
+      showToastMessage(`Imported ${validSaves.length} layout(s) successfully!`, 'success');
+    } catch (err) {
+      console.error('Import error:', err);
+      showToastMessage('Failed to import: invalid or corrupted file.', 'error');
+    }
+    event.target.value = '';
   }
 
   async function loadItemData() {
@@ -1180,11 +1248,31 @@
                 </svg>
                 <span>Save</span>
               </button>
+
             </div>
 
             <!-- Load Column -->
             <div class="space-y-4">
-              <h4 class="text-md font-semibold text-gray-900 border-b border-gray-200 pb-2">Load Saved State</h4>
+              <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+                <h4 class="text-md font-semibold text-gray-900">Load Saved State</h4>
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  class="hidden"
+                  bind:this={importFileInput}
+                  on:change={handleImportFile}
+                />
+                <button
+                  on:click={triggerImport}
+                  class="bg-teal-600 text-white px-3 py-1.5 rounded text-sm hover:bg-teal-700 transition-colors flex items-center space-x-1"
+                  title="Import layouts from a JSON file"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 16m-4-4l4 4"></path>
+                  </svg>
+                  <span>Import</span>
+                </button>
+              </div>
               
               {#if saves.length === 0}
                 <div class="text-center py-8">
@@ -1205,7 +1293,7 @@
                             {save.selectedItems.length} items, {save.conveyors.length} conveyors
                           </div>
                         </div>
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-2 flex-wrap gap-1">
                           <button
                             on:click={() => loadSave(save)}
                             class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors flex items-center space-x-1"
@@ -1214,6 +1302,16 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                             </svg>
                             <span>Load</span>
+                          </button>
+                          <button
+                            on:click={() => exportSingleSave(save)}
+                            class="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700 transition-colors flex items-center space-x-1"
+                            title="Export this layout to a JSON file"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span>Export</span>
                           </button>
                           <button
                             on:click={() => {
